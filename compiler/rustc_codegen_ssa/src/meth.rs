@@ -60,14 +60,22 @@ impl<'a, 'tcx> VirtualIndex {
 
         let dl = &bx.tcx().data_layout;
 
-        let llty = bx.type_isize();
+        // Our vtable array is represented as a bunch of pointer-width elements, even though we can
+        // represent these non-function elements purely in a usize. This means that to obtain the
+        // address we have to load with a GEP, we treat them as pointer-width first.
+        let llty = bx.type_from_integer(dl.ptr_ty_sized_integer(None));
+        let llvalty = bx.type_isize();
+
         // TODO: Get the correct address space. Probably global?
         let llvtable = bx.pointercast(llvtable, bx.type_ptr_to_ext(llty, dl.default_address_space));
         // NOTE: This was previously `usize_align`. Was there some significance to that or is the
         // pointer alignment the correct thing to use here?
         let ptr_align = dl.ptr_layout(Some(dl.instruction_address_space)).align.abi;
         let gep = bx.inbounds_gep(llty, llvtable, &[bx.const_usize(self.0)]);
-        let ptr = bx.load(llty, gep, ptr_align);
+
+        // Now let's do a pointercast to usize now we have done the GEP!
+        let valptr = bx.pointercast(gep, bx.type_ptr_to_ext(llvalty, dl.default_address_space));
+        let ptr = bx.load(llvalty, valptr, ptr_align);
         // VTable loads are invariant.
         bx.set_invariant_load(ptr);
         ptr
