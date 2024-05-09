@@ -886,6 +886,9 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
         assert!(!flags.contains(MemFlags::NONTEMPORAL), "non-temporal memcpy not supported");
         let dl = &self.tcx.data_layout;
         let size = self.intcast(size, self.type_isize(), false);
+        // TODO: This should be based on whether the underlying element being copied is a pointer,
+        // not just the alignment.
+        let is_cap_move = dl.is_cheri_purecap && src_align.bytes() == 16;
         let is_volatile = flags.contains(MemFlags::VOLATILE);
         // TODO: Get correct address space. Should come from the original pointers.
         let dst = self.pointercast(dst, self.type_i8p_ext(dl.default_address_space));
@@ -898,6 +901,7 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
                 src,
                 src_align.bytes() as c_uint,
                 size,
+                if is_cap_move { llvm::PreserveCheriTags::Required } else { llvm::PreserveCheriTags::Unnecessary },
                 is_volatile,
             );
         }
@@ -915,6 +919,9 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
         assert!(!flags.contains(MemFlags::NONTEMPORAL), "non-temporal memmove not supported");
         let dl = &self.tcx.data_layout;
         let size = self.intcast(size, self.type_isize(), false);
+        // TODO: This should be based on whether the underlying element being copied is a pointer,
+        // not just the alignment.
+        let is_cap_move = dl.is_cheri_purecap && src_align.bytes() == 16;
         let is_volatile = flags.contains(MemFlags::VOLATILE);
         // TODO: Get correct address space. Should come from the original pointers.
         let dst = self.pointercast(dst, self.type_i8p_ext(dl.default_address_space));
@@ -927,6 +934,7 @@ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
                 src,
                 src_align.bytes() as c_uint,
                 size,
+                if is_cap_move { llvm::PreserveCheriTags::Required } else { llvm::PreserveCheriTags::Unnecessary },
                 is_volatile,
             );
         }

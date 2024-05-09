@@ -198,6 +198,16 @@ pub enum AttributeKind {
     AllocAlign = 39,
 }
 
+// LLVMPreserveCheriTags
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub enum PreserveCheriTags {
+    Unknown,
+    Required,
+    Unnecessary,
+    TODO,
+}
+
 /// LLVMIntPredicate
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1642,6 +1652,7 @@ extern "C" {
         Src: &'a Value,
         SrcAlign: c_uint,
         Size: &'a Value,
+        PreserveTags: PreserveCheriTags,
         IsVolatile: bool,
     ) -> &'a Value;
     pub fn LLVMRustBuildMemMove<'a>(
@@ -1651,6 +1662,7 @@ extern "C" {
         Src: &'a Value,
         SrcAlign: c_uint,
         Size: &'a Value,
+        PreserveTags: PreserveCheriTags,
         IsVolatile: bool,
     ) -> &'a Value;
     pub fn LLVMRustBuildMemSet<'a>(
