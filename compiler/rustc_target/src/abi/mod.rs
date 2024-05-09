@@ -809,7 +809,7 @@ impl Integer {
         let dl = cx.data_layout();
 
         // FIXME(eddyb) maybe include I128 in the future, when it works everywhere.
-        for candidate in [I64, I32, I16] {
+        for candidate in [I128, I64, I32, I16] {
             if wanted >= candidate.align(dl).abi && wanted.bytes() >= candidate.size().bytes() {
                 return candidate;
             }
