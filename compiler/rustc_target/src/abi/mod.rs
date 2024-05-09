@@ -308,6 +308,17 @@ impl TargetDataLayout {
     }
 
     #[inline]
+    pub fn ptr_ty_sized_integer(&self, address_space: Option<AddressSpace>) -> Integer {
+        match self.ptr_layout(address_space).ty_size.bits() {
+            16 => I16,
+            32 => I32,
+            64 => I64,
+            128 => I128,
+            bits => panic!("val_sized_integer: unknown pointer idx size {}", bits),
+        }
+    }
+
+    #[inline]
     pub fn vector_align(&self, vec_size: Size) -> AbiAndPrefAlign {
         for &(size, align) in &self.vector_align {
             if size == vec_size {

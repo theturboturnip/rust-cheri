@@ -638,6 +638,7 @@ where
             i: usize,
         ) -> TyMaybeWithLayout<'tcx> {
             let tcx = cx.tcx();
+            let dl = cx.data_layout();
             let tag_layout = |tag: Scalar| -> TyAndLayout<'tcx> {
                 TyAndLayout {
                     layout: tcx.intern_layout(LayoutS::scalar(cx, tag)),
@@ -686,11 +687,12 @@ where
                     }
 
                     match tcx.struct_tail_erasing_lifetimes(pointee, cx.param_env()).kind() {
+                        // FIXME: Does usize here cause issues with CHERI?
                         ty::Slice(_) | ty::Str => TyMaybeWithLayout::Ty(tcx.types.usize),
                         ty::Dynamic(_, _, ty::Dyn) => {
                             TyMaybeWithLayout::Ty(tcx.mk_imm_ref(
                                 tcx.lifetimes.re_static,
-                                tcx.mk_array(tcx.types.usize, 3),
+                                tcx.mk_array(dl.ptr_ty_sized_integer(None).to_ty(tcx, false), 3),
                             ))
                             /* FIXME: use actual fn pointers
                             Warning: naively computing the number of entries in the
@@ -758,13 +760,13 @@ where
 
                 ty::Dynamic(_, _, ty::DynStar) => {
                     if i == 0 {
-                        TyMaybeWithLayout::Ty(tcx.types.usize)
+                        TyMaybeWithLayout::Ty(dl.ptr_ty_sized_integer(None).to_ty(tcx, false))
                     } else if i == 1 {
                         // FIXME(dyn-star) same FIXME as above applies here too
                         TyMaybeWithLayout::Ty(
                             tcx.mk_imm_ref(
                                 tcx.lifetimes.re_static,
-                                tcx.mk_array(tcx.types.usize, 3),
+                                tcx.mk_array(dl.ptr_ty_sized_integer(None).to_ty(tcx, false), 3),
                             ),
                         )
                     } else {
