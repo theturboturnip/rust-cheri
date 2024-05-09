@@ -533,7 +533,7 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
                         if int_type_width_signed(ty, bx.tcx()).is_some() || ty.is_unsafe_ptr() {
                             let mut ptr = args[0].immediate();
                             let mut val = args[1].immediate();
-                            if ty.is_unsafe_ptr() {
+                            if ty.is_unsafe_ptr() && !dl.is_cheri_purecap {
                                 // Some platforms do not support atomic operations on pointers,
                                 // so we cast to integer first.
                                 // TODO: This needs fixing for CHERI.
