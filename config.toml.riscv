@@ -1,0 +1,20 @@
+profile = "codegen"
+changelog-seen = 2
+
+[target.riscv64gcxcheri-unknown-freebsd15-purecap]
+cc = "riscv64-unknown-freebsd15"
+ar = "ar"
+
+[llvm]
+download-ci-llvm = false
+targets = "X86;RISCV"
+experimental-targets = ""
+clang = true
+build-config = { "LLVM_ENABLE_PROJECTS"="clang;lld" }
+
+[rust]
+optimize = false
+debug = true
+debuginfo-level = 2
+new-symbol-mangling = false
+use-lld = true
